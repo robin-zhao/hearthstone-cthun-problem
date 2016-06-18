@@ -2,7 +2,7 @@
 
 $live = $dead = 0;
 
-for ($i=0; $i<100000; $i++) {
+for ($i=0; $i<1000000; $i++) {
 
     $game = new Game();
     $game->setHits(20);
