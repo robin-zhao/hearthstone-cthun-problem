@@ -2,8 +2,14 @@
 
 $game = new Game();
 $game->setHits(30);
-$game->setHero(new Hero(30));
-$game->addMaster(new Master(3));
+$hero = new Hero(10);
+
+$hero->setName('英雄瓦莉拉');
+$game->setHero($hero);
+
+$master = new Master(3);
+
+$game->addMaster($master);
 
 $game->run();
 
@@ -21,15 +27,25 @@ class Game
     {
         $this->live = new SplObjectStorage();
     }
+    
+    protected function speak(Character $target, $sentence)
+    {
+        static $number = 0;
+        
+        $number++;
+        
+        echo "\n回合" . str_pad($number, 3, ' ', STR_PAD_LEFT) . " 克苏恩 击中了" . $target->getName() 
+            . "," . $target->getName() . ' ' . $sentence;
+    }
 
     public function setHits($hit)
     {
         $this->hit = $hit;
     }
 
-    public function setHero(Hero $face)
+    public function setHero(Hero $hero)
     {
-        $this->addCharacter($face);
+        $this->addCharacter($hero);
     }
 
     protected function addCharacter(Character $character)
@@ -65,23 +81,26 @@ class Game
 
         if ($character instanceof Hero) {
             if ($character->dead()) {
-                echo "\nHero:dead, done!";
+                $this->speak($character, "死了, 游戏结束!");
+                exit();
             } else {
-                echo "\nHero:hit, " . $character->getHp();
+                $this->speak($character, "剩余血量 " . $character->getHp());
             }
         } else {
             if ($character->dead()) {
                 $this->dead++;
                 $this->live->detach($character);
-                echo "\nMaster:dead";
+                $this->speak($character, "死了");
             } else {
-                echo "\nMaster:hit, " . $character->getHp();
+                $sentence = "剩余血量 " . $character->getHp();
                 if ($this->live->count() + $this->dead < $this->maxMasters + 1) {
-                    $this->live->attach(new Master(3));
-                    echo "\nMaster:new";
+                    $newMaster = new Master(3);
+                    $this->live->attach($newMaster);
+                    $sentence .= ", 呼叫了奴隶主" . $newMaster->getName();
                 } else {
 
                 }
+                $this->speak($character, $sentence);
             }
         }
     }
@@ -90,6 +109,8 @@ class Game
 abstract class Character
 {
     protected $hp;
+    
+    protected $name;
 
     public function __construct($hp)
     {
@@ -110,7 +131,18 @@ abstract class Character
     {
         return $this->hp === 0;
     }
+    
+    public function getName()
+    {
+        return $this->name;
+    }
+    
+    public function setName($name)
+    {
+        $this->name = ' [' . $name . ']';
+    }
 }
+
 class Hero extends Character
 {
 
@@ -118,5 +150,10 @@ class Hero extends Character
 
 class Master extends Character
 {
-
+    public function __construct($hp)
+    {
+        parent::__construct($hp);
+        
+        $this->setName('奴隶主' . substr(md5(spl_object_hash($this)), 0, 4));
+    }
 }
