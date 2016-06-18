@@ -1,31 +1,78 @@
 <?php
 
-$game = new Game();
-$game->setHits(30);
-$hero = new Hero(10);
+$live = $dead = 0;
 
-$hero->setName('英雄瓦莉拉');
-$game->setHero($hero);
+for ($i=0; $i<100000; $i++) {
 
-$master = new Master(3);
+    $game = new Game();
+    $game->setHits(20);
+    $hero = new Hero(10);
 
-$game->addMaster($master);
+    $hero->setName('英雄瓦莉拉');
+    $game->setHero($hero);
 
-$game->run();
+    $game->addMaster(new Master(3));
+
+    $game->run();
+    
+    if ($game->isHeroDead()) {
+        $dead++;
+    } else {
+        $live++;
+    }
+    
+    unset($hero);
+    unset($game);
+
+}
+
+echo "存活" . $live . ' vs ' . '死亡' . $dead;
 
 class Game
 {
+    /**
+     * Max numbers of masters.
+     * @var int
+     */
     protected $maxMasters = 7;
+    
+    /**
+     * C'thun's attack
+     * @var int 
+     */
     protected $hit = 0;
 
+    /**
+     * Contains characters.
+     * @var SplObjectStorage
+     */
     protected $live;
+    
+    /**
+     * How many dead masters;
+     * @var int
+     */
     protected $dead = 0;
 
-    protected $face;
+    /**
+     * Whether hero is dead.
+     * @var boolean
+     */
+    protected $heroDead = false;
 
     public function __construct()
     {
         $this->live = new SplObjectStorage();
+    }
+    
+    public function __destruct()
+    {
+        unset($this->live);
+    }
+    
+    public function isHeroDead()
+    {
+        return $this->heroDead;
     }
     
     protected function speak(Character $target, $sentence)
@@ -34,8 +81,8 @@ class Game
         
         $number++;
         
-        echo "\n回合" . str_pad($number, 3, ' ', STR_PAD_LEFT) . " 克苏恩 击中了" . $target->getName() 
-            . "," . $target->getName() . ' ' . $sentence;
+//        echo "\n回合" . str_pad($number, 3, ' ', STR_PAD_LEFT) . " 克苏恩 击中了" . $target->getName() 
+//            . "," . $target->getName() . ' ' . $sentence;
     }
 
     public function setHits($hit)
@@ -66,6 +113,9 @@ class Game
     {
         for ($i=0; $i<$this->hit; $i++) {
             $this->hurtRand();
+            if ($this->heroDead) {
+                break;
+            }
         }
     }
 
@@ -82,7 +132,7 @@ class Game
         if ($character instanceof Hero) {
             if ($character->dead()) {
                 $this->speak($character, "死了, 游戏结束!");
-                exit();
+                $this->heroDead = true;
             } else {
                 $this->speak($character, "剩余血量 " . $character->getHp());
             }
