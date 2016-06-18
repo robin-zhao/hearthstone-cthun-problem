@@ -2,7 +2,7 @@
 
 $game = new Game();
 $game->setHits(30);
-$game->setFace(new Face(30));
+$game->setHero(new Hero(30));
 $game->addMaster(new Master(3));
 
 $game->run();
@@ -27,7 +27,7 @@ class Game
         $this->hit = $hit;
     }
 
-    public function setFace(Face $face)
+    public function setHero(Hero $face)
     {
         $this->addCharacter($face);
     }
@@ -63,11 +63,11 @@ class Game
         $character = $this->live->current();
         $character->hurt();
 
-        if ($character instanceof Face) {
+        if ($character instanceof Hero) {
             if ($character->dead()) {
-                echo "\nFace:dead, done!";
+                echo "\nHero:dead, done!";
             } else {
-                echo "\nFace:hit, " . $character->getHp();
+                echo "\nHero:hit, " . $character->getHp();
             }
         } else {
             if ($character->dead()) {
@@ -111,7 +111,7 @@ abstract class Character
         return $this->hp === 0;
     }
 }
-class Face extends Character
+class Hero extends Character
 {
 
 }
